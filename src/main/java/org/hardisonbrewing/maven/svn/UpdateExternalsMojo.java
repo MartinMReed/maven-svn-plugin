@@ -87,8 +87,17 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
             throw new IllegalStateException();
         }
 
+        StringBuffer dependencyStr = new StringBuffer();
+        dependencyStr.append( dependency.getGroupId() );
+        dependencyStr.append( ":" );
+        dependencyStr.append( dependency.getArtifactId() );
+        dependencyStr.append( ":" );
+        dependencyStr.append( dependency.getVersion() );
+        dependencyStr.append( ":" );
+        dependencyStr.append( dependency.getType() );
+
         if ( external.path == null ) {
-            getLog().error( "No path specified for external: " + dependency.getGroupId() + ":" + dependency.getArtifactId() );
+            getLog().error( "No path specified for external: " + dependencyStr );
             throw new IllegalStateException();
         }
 
@@ -97,17 +106,18 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
         Scm scm = project.getScm();
 
         if ( scm == null ) {
-            getLog().error( "No SCM specified for " + dependency.getGroupId() + ":" + dependency.getArtifactId() );
+            getLog().error( "No SCM specified for " + dependencyStr );
             throw new IllegalStateException();
         }
 
         String url = scm.getUrl();
 
         if ( url == null || url.length() == 0 ) {
-            getLog().error( "No SCM Url specified for " + dependency.getGroupId() + ":" + dependency.getArtifactId() );
+            getLog().error( "No SCM Url specified for " + dependencyStr );
             throw new IllegalStateException();
         }
 
+        getLog().error( "Setting svn:externals for " + dependencyStr + " to '" + external.path + " " + url + "'" );
         properties.put( external.path, url );
     }
 
