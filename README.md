@@ -37,8 +37,43 @@ To download this plugin without building it manually, you can add the following 
 
 Continuous Integration: [Bamboo Status](http://bamboo.hardisonbrewing.org/browse/MVN-SVN)
 
-# Sample: Project POM
+# Sample Usage
+
+## Project Structure
+
+	<svn>/core/trunk
+	<svn>/core/trunk/lib1/src
+	<svn>/core/trunk/lib2/src
+	<svn>/core/trunk/lib3/src
 	
+	<svn>/core/tags
+	<svn>/core/tags/komodododo-core-1.0.45
+	<svn>/core/tags/komodododo-core-1.0.45/lib1/src
+	<svn>/core/tags/komodododo-core-1.0.45/lib2/src
+	<svn>/core/tags/komodododo-core-1.0.45/lib3/src
+	
+	<svn>/app/trunk
+	<svn>/app/trunk/src
+	<svn>/app/trunk/res
+	<svn>/app/trunk/core <------ [1]
+	
+	<svn>/app/tags
+	<svn>/app/tags/komodododo-0.0.1/src
+	<svn>/app/tags/komodododo-0.0.1/res
+	<svn>/app/tags/komodododo-0.0.1/core <------ [2]
+	
+	<dependency>
+	  <groupId>net.hardisonbrewing</groupId>
+	  <artifactId>komodododo-core</artifactId>
+	  <version>1.0.45</version> <------ SCM url points to [2]
+	  <type>pom</type>
+	</dependency>
+
+\[1\]: svn:externals pointing to \<svn\>/core/trunk  
+\[2\]: svn:externals pointing to \<svn\>/core/tags/komodododo-core-1.0.45
+
+## Project POM
+
 	<project xmlns="http://maven.apache.org/POM/4.0.0"
 	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0">
