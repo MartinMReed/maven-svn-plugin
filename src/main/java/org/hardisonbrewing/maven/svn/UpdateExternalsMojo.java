@@ -81,6 +81,8 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
         cmd.add( "--depth" );
         cmd.add( "empty" );
         cmd.add( "." );
+        cmd.add( "-m" );
+        cmd.add( "\"Modify svn:externals definition only.\"" );
         execute( cmd );
     }
 
