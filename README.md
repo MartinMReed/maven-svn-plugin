@@ -1,6 +1,19 @@
 # Usage
 A [Maven](http://maven.apache.org/download.html) plugin to support updating svn:externals to point to the SCM Url of a given dependency. The target use-case for this is to update the svn:externals property while performing a release. This ensures that the project build is reproducible.
 
+During a release, add `svn:prepare-externals` to the `<preparationGoals/>`, and `svn:update-externals` to the `<completionGoals/>`.
+
+```xml
+<plugin>
+  <artifactId>maven-release-plugin</artifactId>
+  <extensions>true</extensions>
+  <configuration>
+    <preparationGoals>verify svn:prepare-externals</preparationGoals>
+    <completionGoals>svn:update-externals</completionGoals>
+  </configuration>
+</plugin>
+```
+
 # Build or Download
 To build this you need to use [Maven](http://maven.apache.org/download.html) with the [hbc-maven-core](https://github.com/hardisonbrewing/hbc-maven-core) project. Alternatively you can pull the latest version of hbc-maven-core from [http://repo.hardisonbrewing.org](http://repo.hardisonbrewing.org) (see repository settings below).
 
