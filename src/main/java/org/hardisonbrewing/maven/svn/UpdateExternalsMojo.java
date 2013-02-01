@@ -50,6 +50,8 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
      */
     private External[] externals;
 
+    private File checkoutDirectory;
+
     @Override
     public final void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -58,25 +60,57 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
             throw new IllegalStateException();
         }
 
+        StringBuffer stringBuffer = new StringBuffer();
+        stringBuffer.append( TargetDirectoryService.getTargetDirectoryPath() );
+        stringBuffer.append( File.separator );
+        stringBuffer.append( "checkout" );
+        String checkoutDirPath = stringBuffer.toString();
+
+        checkoutDirectory = new File( checkoutDirPath );
+        if ( !checkoutDirectory.exists() ) {
+            checkoutDirectory.mkdirs();
+        }
+
         try {
+            checkout();
             updateExternals();
+            commit();
         }
         catch (Exception e) {
             throw new IllegalStateException( e );
         }
-
-        updateSvn();
     }
 
     @Override
     protected Commandline buildCommandline( List<String> cmd ) {
 
+        Commandline commandLine;
+
         try {
-            return CommandLineService.build( cmd );
+            commandLine = CommandLineService.build( cmd );
         }
         catch (CommandLineException e) {
             throw new IllegalStateException( e.getMessage() );
         }
+
+        commandLine.setWorkingDirectory( checkoutDirectory );
+
+        return commandLine;
+    }
+
+    private void checkout() throws Exception {
+
+        Properties properties = PropertiesService.getExternalsProperties();
+        String url = properties.getProperty( PropertiesService.SCM_URL );
+
+        List<String> cmd = new LinkedList<String>();
+        cmd.add( "svn" );
+        cmd.add( "checkout" );
+        cmd.add( "--depth" );
+        cmd.add( "empty" );
+        cmd.add( url );
+        cmd.add( "." );
+        execute( cmd );
     }
 
     private void updateExternals() throws Exception {
@@ -151,6 +185,21 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
 
         String targetDirectoryPath = TargetDirectoryService.getTargetDirectoryPath();
         File file = new File( targetDirectoryPath, "svn.externals" );
+
+        writeExternals( properties, file );
+
+        List<String> cmd = new LinkedList<String>();
+        cmd.add( "svn" );
+        cmd.add( "propset" );
+        cmd.add( "svn:externals" );
+        cmd.add( "-F" );
+        cmd.add( file.getPath() );
+        cmd.add( "." );
+        execute( cmd );
+    }
+
+    private void writeExternals( Properties properties, File file ) throws Exception {
+
         FileUtils.ensureParentExists( file );
 
         OutputStream outputStream = null;
@@ -168,22 +217,18 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
         finally {
             IOUtil.close( outputStream );
         }
-
-        List<String> cmd = new LinkedList<String>();
-        cmd.add( "svn" );
-        cmd.add( "propset" );
-        cmd.add( "svn:externals" );
-        cmd.add( "-F" );
-        cmd.add( file.getPath() );
-        cmd.add( "." );
-        execute( cmd );
     }
 
-    private void updateSvn() {
+    private void commit() {
 
         List<String> cmd = new LinkedList<String>();
         cmd.add( "svn" );
-        cmd.add( "update" );
+        cmd.add( "commit" );
+        cmd.add( "--depth" );
+        cmd.add( "empty" );
+        cmd.add( "." );
+        cmd.add( "-m" );
+        cmd.add( "\"[maven-svn-plugin] update svn:externals property\"" );
         execute( cmd );
     }
 }
