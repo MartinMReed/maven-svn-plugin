@@ -35,6 +35,11 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
      */
     private External[] externals;
 
+    /**
+     * @parameter
+     */
+    private boolean commit;
+
     @Override
     public final void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -60,6 +65,26 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
         catch (Exception e) {
             throw new IllegalStateException( e );
         }
+
+        updateSvn();
+
+        if ( commit ) {
+            commitSvnProperties();
+        }
+    }
+
+    private void commitSvnProperties() {
+
+        List<String> cmd = new LinkedList<String>();
+        cmd.add( "svn" );
+        cmd.add( "commit" );
+        cmd.add( "--depth" );
+        cmd.add( "empty" );
+        cmd.add( "." );
+        execute( cmd );
+    }
+
+    private void updateSvn() {
 
         List<String> cmd = new LinkedList<String>();
         cmd.add( "svn" );
