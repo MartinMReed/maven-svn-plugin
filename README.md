@@ -31,3 +31,46 @@ To download this plugin without building it manually, you can add the following 
 			<url>http://repo.hardisonbrewing.org/content/repositories/snapshots/</url>
 		</pluginRepository>
 	</pluginRepositories>
+
+# Sample: Project POM
+	
+	<project xmlns="http://maven.apache.org/POM/4.0.0"
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0">
+	  <modelVersion>4.0.0</modelVersion>
+	  <groupId>net.hardisonbrewing</groupId>
+	  <artifactId>komodododo</artifactId>
+	  <version>0.0.1-SNAPSHOT</version>
+	  <name>${project.artifactId}</name>
+	  <packaging>pom</packaging>
+	  <build>
+	    <plugins>
+	      <plugin>
+	        <artifactId>maven-release-plugin</artifactId>
+	        <extensions>true</extensions>
+	        <configuration>
+	          <preparationGoals>verify svn:prepare-externals</preparationGoals>
+	          <completionGoals>svn:update-externals</completionGoals>
+	        </configuration>
+	      </plugin>
+	      <plugin>
+	        <groupId>org.hardisonbrewing</groupId>
+	        <artifactId>maven-svn-plugin</artifactId>
+	        <extensions>true</extensions>
+	        <configuration>
+	          <externals>
+	            <external>
+	              <path>core</path>
+	              <dependency>
+	                <groupId>net.hardisonbrewing</groupId>
+	                <artifactId>komodododo-core</artifactId>
+	                <version>1.0.45</version>
+	                <type>pom</type>
+	              </dependency>
+	            </external>
+	          </externals>
+	        </configuration>
+	      </plugin>
+	    </plugins>
+	  </build>
+	</project>
