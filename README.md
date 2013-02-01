@@ -90,6 +90,10 @@ Continuous Integration: [Bamboo Status](http://bamboo.hardisonbrewing.org/browse
   <version>0.0.1-SNAPSHOT</version>
   <name>${project.artifactId}</name>
   <packaging>pom</packaging>
+  <scm>
+    <url>https://<svn>/app/trunk</url>
+    <developerConnection>scm:svn:https://<svn>/app/trunk</developerConnection>
+    </scm>
   <build>
     <plugins>
       <plugin>
