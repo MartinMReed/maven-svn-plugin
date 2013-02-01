@@ -36,14 +36,15 @@ import org.hardisonbrewing.maven.core.DependencyService;
 import org.hardisonbrewing.maven.core.FileUtils;
 import org.hardisonbrewing.maven.core.JoJoMojoImpl;
 import org.hardisonbrewing.maven.core.ProjectService;
+import org.hardisonbrewing.maven.core.PropertiesService;
 import org.hardisonbrewing.maven.core.TargetDirectoryService;
 import org.hardisonbrewing.maven.core.cli.CommandLineService;
 
 /**
- * @goal update-externals
- * @phase update-externals
+ * @goal update-tag-externals
+ * @phase update-tag-externals
  */
-public final class UpdateExternalsMojo extends JoJoMojoImpl {
+public final class UpdateTagExternalsMojo extends JoJoMojoImpl {
 
     /**
      * @parameter
@@ -58,25 +59,77 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
             throw new IllegalStateException();
         }
 
+        Properties releaseProperties = loadReleaseProperties();
+
         try {
+            checkout( releaseProperties );
             updateExternals();
+            commit( releaseProperties );
         }
         catch (Exception e) {
             throw new IllegalStateException( e );
         }
-
-        updateSvn();
     }
 
     @Override
     protected Commandline buildCommandline( List<String> cmd ) {
 
+        Commandline commandLine;
+
         try {
-            return CommandLineService.build( cmd );
+            commandLine = CommandLineService.build( cmd );
         }
         catch (CommandLineException e) {
             throw new IllegalStateException( e.getMessage() );
         }
+
+        StringBuffer stringBuffer = new StringBuffer();
+        stringBuffer.append( TargetDirectoryService.getTargetDirectoryPath() );
+        stringBuffer.append( File.separator );
+        stringBuffer.append( "checkout" );
+        commandLine.setWorkingDirectory( stringBuffer.toString() );
+
+        return commandLine;
+    }
+
+    private Properties loadReleaseProperties() {
+
+        StringBuffer stringBuffer = new StringBuffer();
+        stringBuffer.append( ProjectService.getBaseDirPath() );
+        stringBuffer.append( File.separator );
+        stringBuffer.append( "release.properties" );
+        return PropertiesService.loadProperties( stringBuffer.toString() );
+    }
+
+    private void checkout( Properties releaseProperties ) throws Exception {
+
+        Artifact artifact = getProject().getArtifact();
+
+        artifact = DependencyService.createArtifact( artifact );
+        artifact.setVersion( getReleaseVersion( releaseProperties, artifact ) );
+        DependencyService.resolve( artifact );
+
+        MavenProject project = ProjectService.getProject( artifact );
+        Scm scm = project.getScm();
+
+        List<String> cmd = new LinkedList<String>();
+        cmd.add( "svn" );
+        cmd.add( "checkout" );
+        cmd.add( "--depth" );
+        cmd.add( "empty" );
+        cmd.add( scm.getUrl() );
+        cmd.add( "." );
+        execute( cmd );
+    }
+
+    private String getReleaseVersion( Properties properties, Artifact artifact ) {
+
+        StringBuffer stringBuffer = new StringBuffer();
+        stringBuffer.append( "project.rel." );
+        stringBuffer.append( artifact.getGroupId() );
+        stringBuffer.append( ":" );
+        stringBuffer.append( artifact.getArtifactId() );
+        return stringBuffer.toString();
     }
 
     private void updateExternals() throws Exception {
@@ -151,6 +204,21 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
 
         String targetDirectoryPath = TargetDirectoryService.getTargetDirectoryPath();
         File file = new File( targetDirectoryPath, "svn.externals" );
+
+        writeExternals( properties, file );
+
+        List<String> cmd = new LinkedList<String>();
+        cmd.add( "svn" );
+        cmd.add( "propset" );
+        cmd.add( "svn:externals" );
+        cmd.add( "-F" );
+        cmd.add( file.getPath() );
+        cmd.add( "." );
+        execute( cmd );
+    }
+
+    private void writeExternals( Properties properties, File file ) throws Exception {
+
         FileUtils.ensureParentExists( file );
 
         OutputStream outputStream = null;
@@ -168,22 +236,22 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
         finally {
             IOUtil.close( outputStream );
         }
-
-        List<String> cmd = new LinkedList<String>();
-        cmd.add( "svn" );
-        cmd.add( "propset" );
-        cmd.add( "svn:externals" );
-        cmd.add( "-F" );
-        cmd.add( file.getPath() );
-        cmd.add( "." );
-        execute( cmd );
     }
 
-    private void updateSvn() {
+    private void commit( Properties releaseProperties ) {
+
+        StringBuffer comment = new StringBuffer();
+        comment.append( releaseProperties.getProperty( "scm.commentPrefix" ) );
+        comment.append( "update svn:externals property" );
 
         List<String> cmd = new LinkedList<String>();
         cmd.add( "svn" );
-        cmd.add( "update" );
+        cmd.add( "commit" );
+        cmd.add( "--depth" );
+        cmd.add( "empty" );
+        cmd.add( "." );
+        cmd.add( "-m" );
+        cmd.add( "\"" + comment + "\"" );
         execute( cmd );
     }
 }
