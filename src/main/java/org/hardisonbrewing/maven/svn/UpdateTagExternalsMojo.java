@@ -121,7 +121,6 @@ public final class UpdateTagExternalsMojo extends JoJoMojoImpl {
 
         artifact = DependencyService.createArtifact( artifact );
         artifact.setVersion( getReleaseVersion( releaseProperties, artifact ) );
-        DependencyService.resolve( artifact );
 
         MavenProject project = ProjectService.getProject( artifact );
         Scm scm = project.getScm();
