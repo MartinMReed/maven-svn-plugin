@@ -35,6 +35,8 @@ To download this plugin without building it manually, you can add the following 
 		</pluginRepository>
 	</pluginRepositories>
 
+Continuous Integration: [Bamboo Status](http://bamboo.hardisonbrewing.org/browse/MVN-SVN)
+
 # Sample: Project POM
 	
 	<project xmlns="http://maven.apache.org/POM/4.0.0"
