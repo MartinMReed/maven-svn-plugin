@@ -50,12 +50,25 @@ public final class UpdateTagExternalsMojo extends JoJoMojoImpl {
      */
     private External[] externals;
 
+    private File checkoutDirectory;
+
     @Override
     public final void execute() throws MojoExecutionException, MojoFailureException {
 
         if ( externals == null ) {
             getLog().error( "Must specify <externals/> list!" );
             throw new IllegalStateException();
+        }
+
+        StringBuffer stringBuffer = new StringBuffer();
+        stringBuffer.append( TargetDirectoryService.getTargetDirectoryPath() );
+        stringBuffer.append( File.separator );
+        stringBuffer.append( "checkout" );
+        String checkoutDirPath = stringBuffer.toString();
+
+        checkoutDirectory = new File( checkoutDirPath );
+        if ( !checkoutDirectory.exists() ) {
+            checkoutDirectory.mkdirs();
         }
 
         try {
@@ -80,11 +93,7 @@ public final class UpdateTagExternalsMojo extends JoJoMojoImpl {
             throw new IllegalStateException( e.getMessage() );
         }
 
-        StringBuffer stringBuffer = new StringBuffer();
-        stringBuffer.append( TargetDirectoryService.getTargetDirectoryPath() );
-        stringBuffer.append( File.separator );
-        stringBuffer.append( "checkout" );
-        commandLine.setWorkingDirectory( stringBuffer.toString() );
+        commandLine.setWorkingDirectory( checkoutDirectory );
 
         return commandLine;
     }
