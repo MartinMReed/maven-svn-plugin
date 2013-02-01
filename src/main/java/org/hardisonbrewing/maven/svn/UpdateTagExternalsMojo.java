@@ -36,7 +36,6 @@ import org.hardisonbrewing.maven.core.DependencyService;
 import org.hardisonbrewing.maven.core.FileUtils;
 import org.hardisonbrewing.maven.core.JoJoMojoImpl;
 import org.hardisonbrewing.maven.core.ProjectService;
-import org.hardisonbrewing.maven.core.PropertiesService;
 import org.hardisonbrewing.maven.core.TargetDirectoryService;
 import org.hardisonbrewing.maven.core.cli.CommandLineService;
 
@@ -59,12 +58,10 @@ public final class UpdateTagExternalsMojo extends JoJoMojoImpl {
             throw new IllegalStateException();
         }
 
-        Properties releaseProperties = loadReleaseProperties();
-
         try {
-            checkout( releaseProperties );
+            checkout();
             updateExternals();
-            commit( releaseProperties );
+            commit();
         }
         catch (Exception e) {
             throw new IllegalStateException( e );
@@ -92,38 +89,9 @@ public final class UpdateTagExternalsMojo extends JoJoMojoImpl {
         return commandLine;
     }
 
-    private Properties loadReleaseProperties() {
+    private void checkout() throws Exception {
 
-        // #release configuration
-        // project.scm.org.hbc\:komo.url=http\://svn.hbc.org/komo/trunk
-        // project.scm.org.hbc\:komo.developerConnection=scm\:svn\:http\://svn.hbc.org/komo/trunk
-        // scm.tag=komo-0.0.1
-        // scm.url=scm\:svn\:http\://svn.hbc.org/komo/trunk
-        // project.rel.org.hbc\:komo=0.0.1
-        // preparationGoals=clean verify
-        // remoteTagging=true
-        // scm.commentPrefix=[maven-release-plugin] 
-        // exec.additionalArguments=-P username
-        // project.scm.org.hbc\:komo.tag=HEAD
-        // project.dev.org.hbc\:komo=0.0.2-SNAPSHOT
-        // completedPhase=run-preparation-goals
-
-        StringBuffer stringBuffer = new StringBuffer();
-        stringBuffer.append( ProjectService.getBaseDirPath() );
-        stringBuffer.append( File.separator );
-        stringBuffer.append( "release.properties" );
-        return PropertiesService.loadProperties( stringBuffer.toString() );
-    }
-
-    private void checkout( Properties releaseProperties ) throws Exception {
-
-        Artifact artifact = getProject().getArtifact();
-
-        artifact = DependencyService.createArtifact( artifact );
-        artifact.setVersion( getReleaseVersion( releaseProperties, artifact ) );
-        DependencyService.resolve( artifact );
-
-        MavenProject project = ProjectService.getProject( artifact );
+        MavenProject project = getProject();
         Scm scm = project.getScm();
 
         List<String> cmd = new LinkedList<String>();
@@ -134,16 +102,6 @@ public final class UpdateTagExternalsMojo extends JoJoMojoImpl {
         cmd.add( scm.getUrl() );
         cmd.add( "." );
         execute( cmd );
-    }
-
-    private String getReleaseVersion( Properties properties, Artifact artifact ) {
-
-        StringBuffer stringBuffer = new StringBuffer();
-        stringBuffer.append( "project.rel." );
-        stringBuffer.append( artifact.getGroupId() );
-        stringBuffer.append( ":" );
-        stringBuffer.append( artifact.getArtifactId() );
-        return properties.getProperty( stringBuffer.toString() );
     }
 
     private void updateExternals() throws Exception {
@@ -252,11 +210,7 @@ public final class UpdateTagExternalsMojo extends JoJoMojoImpl {
         }
     }
 
-    private void commit( Properties releaseProperties ) {
-
-        StringBuffer comment = new StringBuffer();
-        comment.append( releaseProperties.getProperty( "scm.commentPrefix" ) );
-        comment.append( "update svn:externals property" );
+    private void commit() {
 
         List<String> cmd = new LinkedList<String>();
         cmd.add( "svn" );
@@ -265,7 +219,7 @@ public final class UpdateTagExternalsMojo extends JoJoMojoImpl {
         cmd.add( "empty" );
         cmd.add( "." );
         cmd.add( "-m" );
-        cmd.add( "\"" + comment + "\"" );
+        cmd.add( "\"[maven-svn-plugin] update svn:externals property\"" );
         execute( cmd );
     }
 }
