@@ -94,6 +94,20 @@ public final class UpdateTagExternalsMojo extends JoJoMojoImpl {
 
     private Properties loadReleaseProperties() {
 
+        // #release configuration
+        // project.scm.org.hbc\:komo.url=http\://svn.hbc.org/komo/trunk
+        // project.scm.org.hbc\:komo.developerConnection=scm\:svn\:http\://svn.hbc.org/komo/trunk
+        // scm.tag=komo-0.0.1
+        // scm.url=scm\:svn\:http\://svn.hbc.org/komo/trunk
+        // project.rel.org.hbc\:komo=0.0.1
+        // preparationGoals=clean verify
+        // remoteTagging=true
+        // scm.commentPrefix=[maven-release-plugin] 
+        // exec.additionalArguments=-P username
+        // project.scm.org.hbc\:komo.tag=HEAD
+        // project.dev.org.hbc\:komo=0.0.2-SNAPSHOT
+        // completedPhase=run-preparation-goals
+
         StringBuffer stringBuffer = new StringBuffer();
         stringBuffer.append( ProjectService.getBaseDirPath() );
         stringBuffer.append( File.separator );
