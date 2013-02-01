@@ -143,7 +143,7 @@ public final class UpdateTagExternalsMojo extends JoJoMojoImpl {
         stringBuffer.append( artifact.getGroupId() );
         stringBuffer.append( ":" );
         stringBuffer.append( artifact.getArtifactId() );
-        return stringBuffer.toString();
+        return properties.getProperty( stringBuffer.toString() );
     }
 
     private void updateExternals() throws Exception {
