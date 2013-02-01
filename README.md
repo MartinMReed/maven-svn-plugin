@@ -93,7 +93,7 @@ Continuous Integration: [Bamboo Status](http://bamboo.hardisonbrewing.org/browse
   <scm>
     <url>https://<svn>/app/trunk</url>
     <developerConnection>scm:svn:https://<svn>/app/trunk</developerConnection>
-    </scm>
+  </scm>
   <build>
     <plugins>
       <plugin>
