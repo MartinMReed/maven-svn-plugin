@@ -16,33 +16,8 @@
  */
 package org.hardisonbrewing.maven.svn;
 
-import java.util.List;
+public class Entry {
 
-import org.codehaus.plexus.util.cli.StreamConsumer;
-
-public class PropertyStreamConsumer implements StreamConsumer {
-
-    private final List<Entry> properties;
-
-    public PropertyStreamConsumer(List<Entry> properties) {
-
-        this.properties = properties;
-    }
-
-    @Override
-    public void consumeLine( String line ) {
-
-        line = line.trim();
-
-        int indexOf = line.indexOf( ' ' );
-
-        if ( indexOf == -1 ) {
-            return;
-        }
-
-        Entry entry = new Entry();
-        entry.first = line.substring( 0, indexOf ).trim();
-        entry.second = line.substring( indexOf + 1 ).trim();
-        properties.add( entry );
-    }
+    public String first;
+    public String second;
 }
