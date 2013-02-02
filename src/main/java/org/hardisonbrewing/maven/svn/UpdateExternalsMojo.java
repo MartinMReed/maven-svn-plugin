@@ -19,8 +19,10 @@ package org.hardisonbrewing.maven.svn;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.AbstractMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.maven.artifact.Artifact;
@@ -115,7 +117,7 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
 
     private void updateExternals() throws Exception {
 
-        Properties properties = loadExternals();
+        List<Entry<String, String>> properties = loadExternals();
 
         for (External external : externals) {
             updateExternal( properties, external );
@@ -124,21 +126,21 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
         writeExternals( properties );
     }
 
-    private Properties loadExternals() {
+    private List<Entry<String, String>> loadExternals() {
 
         List<String> cmd = new LinkedList<String>();
         cmd.add( "svn" );
         cmd.add( "propget" );
         cmd.add( "svn:externals" );
 
-        Properties properties = new Properties();
+        List<Entry<String, String>> properties = new LinkedList<Entry<String, String>>();
         PropertyStreamConsumer streamConsumer = new PropertyStreamConsumer( properties );
         execute( cmd, streamConsumer, null );
 
         return properties;
     }
 
-    private void updateExternal( Properties properties, External external ) throws Exception {
+    private void updateExternal( List<Entry<String, String>> properties, External external ) throws Exception {
 
         Dependency dependency = external.dependency;
 
@@ -177,11 +179,28 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
             throw new IllegalStateException();
         }
 
-        getLog().error( "Setting svn:externals for " + dependencyStr + " to '" + external.path + " " + url + "'" );
-        properties.put( external.path, url );
+        getLog().error( "Setting svn:externals for " + dependencyStr + " to '" + url + " " + external.path + "'" );
+
+        Entry<String, String> entry = findEntry( properties, external.path );
+
+        if ( entry == null ) {
+            entry = new AbstractMap.SimpleEntry<String, String>( url, external.path );
+            properties.add( entry );
+        }
     }
 
-    private void writeExternals( Properties properties ) throws Exception {
+    private Entry<String, String> findEntry( List<Entry<String, String>> properties, String path ) {
+
+        for (Entry<String, String> entry : properties) {
+            if ( path.equals( entry.getKey() ) || path.equals( entry.getValue() ) ) {
+                return entry;
+            }
+        }
+
+        return null;
+    }
+
+    private void writeExternals( List<Entry<String, String>> properties ) throws Exception {
 
         String targetDirectoryPath = TargetDirectoryService.getTargetDirectoryPath();
         File file = new File( targetDirectoryPath, "svn.externals" );
@@ -198,7 +217,7 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
         execute( cmd );
     }
 
-    private void writeExternals( Properties properties, File file ) throws Exception {
+    private void writeExternals( List<Entry<String, String>> properties, File file ) throws Exception {
 
         FileUtils.ensureParentExists( file );
 
@@ -208,10 +227,10 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
 
             outputStream = new FileOutputStream( file );
 
-            for (Object key : properties.keySet()) {
-                String path = (String) key;
-                String url = (String) properties.getProperty( path );
-                outputStream.write( ( path + " " + url + "\n" ).getBytes() );
+            for (Entry<String, String> entry : properties) {
+                String url = (String) entry.getKey();
+                String path = (String) entry.getValue();
+                outputStream.write( ( url + " " + path + "\n" ).getBytes() );
             }
         }
         finally {
