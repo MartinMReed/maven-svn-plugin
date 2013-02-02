@@ -19,10 +19,8 @@ package org.hardisonbrewing.maven.svn;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.util.AbstractMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.maven.artifact.Artifact;
@@ -117,7 +115,7 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
 
     private void updateExternals() throws Exception {
 
-        List<Entry<String, String>> properties = loadExternals();
+        List<Entry> properties = loadExternals();
 
         for (External external : externals) {
             updateExternal( properties, external );
@@ -126,21 +124,21 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
         writeExternals( properties );
     }
 
-    private List<Entry<String, String>> loadExternals() {
+    private List<Entry> loadExternals() {
 
         List<String> cmd = new LinkedList<String>();
         cmd.add( "svn" );
         cmd.add( "propget" );
         cmd.add( "svn:externals" );
 
-        List<Entry<String, String>> properties = new LinkedList<Entry<String, String>>();
+        List<Entry> properties = new LinkedList<Entry>();
         PropertyStreamConsumer streamConsumer = new PropertyStreamConsumer( properties );
         execute( cmd, streamConsumer, null );
 
         return properties;
     }
 
-    private void updateExternal( List<Entry<String, String>> properties, External external ) throws Exception {
+    private void updateExternal( List<Entry> properties, External external ) throws Exception {
 
         Dependency dependency = external.dependency;
 
@@ -181,18 +179,21 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
 
         getLog().error( "Setting svn:externals for " + dependencyStr + " to '" + url + " " + external.path + "'" );
 
-        Entry<String, String> entry = findEntry( properties, external.path );
+        Entry entry = findEntry( properties, external.path );
 
         if ( entry == null ) {
-            entry = new AbstractMap.SimpleEntry<String, String>( url, external.path );
+            entry = new Entry();
             properties.add( entry );
         }
+
+        entry.first = url;
+        entry.second = external.path;
     }
 
-    private Entry<String, String> findEntry( List<Entry<String, String>> properties, String path ) {
+    private Entry findEntry( List<Entry> properties, String path ) {
 
-        for (Entry<String, String> entry : properties) {
-            if ( path.equals( entry.getKey() ) || path.equals( entry.getValue() ) ) {
+        for (Entry entry : properties) {
+            if ( path.equals( entry.first ) || path.equals( entry.second ) ) {
                 return entry;
             }
         }
@@ -200,7 +201,7 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
         return null;
     }
 
-    private void writeExternals( List<Entry<String, String>> properties ) throws Exception {
+    private void writeExternals( List<Entry> properties ) throws Exception {
 
         String targetDirectoryPath = TargetDirectoryService.getTargetDirectoryPath();
         File file = new File( targetDirectoryPath, "svn.externals" );
@@ -217,7 +218,7 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
         execute( cmd );
     }
 
-    private void writeExternals( List<Entry<String, String>> properties, File file ) throws Exception {
+    private void writeExternals( List<Entry> properties, File file ) throws Exception {
 
         FileUtils.ensureParentExists( file );
 
@@ -227,10 +228,8 @@ public final class UpdateExternalsMojo extends JoJoMojoImpl {
 
             outputStream = new FileOutputStream( file );
 
-            for (Entry<String, String> entry : properties) {
-                String url = (String) entry.getKey();
-                String path = (String) entry.getValue();
-                outputStream.write( ( url + " " + path + "\n" ).getBytes() );
+            for (Entry entry : properties) {
+                outputStream.write( ( entry.first + " " + entry.second + "\n" ).getBytes() );
             }
         }
         finally {
