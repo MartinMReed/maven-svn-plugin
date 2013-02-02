@@ -16,15 +16,17 @@
  */
 package org.hardisonbrewing.maven.svn;
 
-import java.util.Properties;
+import java.util.AbstractMap;
+import java.util.List;
+import java.util.Map.Entry;
 
 import org.codehaus.plexus.util.cli.StreamConsumer;
 
 public class PropertyStreamConsumer implements StreamConsumer {
 
-    private final Properties properties;
+    private final List<Entry<String, String>> properties;
 
-    public PropertyStreamConsumer(Properties properties) {
+    public PropertyStreamConsumer(List<Entry<String, String>> properties) {
 
         this.properties = properties;
     }
@@ -42,6 +44,6 @@ public class PropertyStreamConsumer implements StreamConsumer {
 
         String key = line.substring( 0, indexOf ).trim();
         String value = line.substring( indexOf + 1 ).trim();
-        properties.put( key, value );
+        properties.add( new AbstractMap.SimpleEntry<String, String>( key, value ) );
     }
 }
