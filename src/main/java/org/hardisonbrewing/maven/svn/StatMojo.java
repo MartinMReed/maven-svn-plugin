@@ -50,17 +50,17 @@ public final class StatMojo extends JoJoMojoImpl {
     private String[] excludes;
 
     /**
-     * @parameter
+     * @parameter expression="${maven.svn.revisionStart}"
      */
     private long revisionStart;
 
     /**
-     * @parameter
+     * @parameter expression="${maven.svn.revisionEnd}"
      */
     private long revisionEnd;
 
     /**
-     * @parameter property="threads" default-value="15"
+     * @parameter property="threads" default-value="15" expression="${maven.svn.threads}"
      */
     private int threadCount;
 
