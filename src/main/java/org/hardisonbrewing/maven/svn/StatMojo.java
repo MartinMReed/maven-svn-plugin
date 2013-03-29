@@ -60,14 +60,19 @@ public final class StatMojo extends JoJoMojoImpl {
     private long revisionEnd;
 
     /**
-     * @parameter property="threads" default-value="15" expression="${maven.svn.threads}"
+     * @parameter property="threads" expression="${maven.svn.threads}" default-value="15"
      */
     private int threadCount;
+
+    /**
+     * @parameter expression="${maven.svn.workingDirectory}" default-value="${project.basedir}"
+     */
+    private String workingDirectory;
 
     @Override
     public final void execute() throws MojoExecutionException, MojoFailureException {
 
-        File baseDir = getProject().getBasedir();
+        File baseDir = new File( workingDirectory );
         File[] files = FileUtils.listFilesRecursive( baseDir, includes, excludes );
 
         if ( revisionStart > 0 || revisionEnd > 0 ) {
