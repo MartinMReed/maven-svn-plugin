@@ -6,10 +6,8 @@ A [Maven](http://maven.apache.org/download.html) plugin to support:
  * This can be the full line count in HEAD or the lines added since a given revision.
 
 ## Build or Download
-Dependency Projects:
-* [hbc-maven-core](https://github.com/hardisonbrewing/hbc-maven-core)
-
-Nexus: [http://repo.hardisonbrewing.org](http://repo.hardisonbrewing.org)  
+Dependency Projects: [hbc-maven-core](https://github.com/hardisonbrewing/hbc-maven-core)  
+Available in Nexus: [http://repo.hardisonbrewing.org](http://repo.hardisonbrewing.org)  
 Continuous Integration: [Bamboo Status](http://bamboo.hardisonbrewing.org/browse/MVN-SVN)
 
 # Updating svn:externals
